@@ -33,7 +33,17 @@ function loadRecords() {
           date: r.date,
           count: Math.max(0, Math.floor(Number(r.count))),
           reviewed: Boolean(r.reviewed),
-          note: String(r.note || "")
+          note: String(r.note || ""),
+          problems: Array.isArray(r.problems)
+            ? r.problems
+                .filter((p) => p && (p.name || p.oj || p.link))
+                .map((p) => ({
+                  name: String(p.name || "").trim(),
+                  oj: String(p.oj || "").trim(),
+                  link: String(p.link || "").trim(),
+                  reviewed: Boolean(p.reviewed)
+                }))
+            : []
         }));
       return;
     }
@@ -138,7 +148,7 @@ function formatDateCN(dateStr) {
 function renderTable() {
   const body = $("recordBody");
   if (records.length === 0) {
-    body.innerHTML = `<tr class="empty-row"><td colspan="5">还没有记录</td></tr>`;
+    body.innerHTML = `<tr class="empty-row"><td colspan="6">还没有记录</td></tr>`;
     return;
   }
 
@@ -150,6 +160,7 @@ function renderTable() {
           <td>${formatDateCN(r.date)}</td>
           <td class="count-cell">${r.count} 题</td>
           <td><span class="badge ${r.reviewed ? "ok" : "warn"}">${r.reviewed ? "已补" : "未补"}</span></td>
+          <td class="problem-cell" title="${escapeHtml(formatProblemNames(r))}">${escapeHtml(formatProblemNames(r)) || "—"}</td>
           <td class="note-cell" title="${escapeHtml(r.note)}">${escapeHtml(r.note) || "—"}</td>
           <td class="actions">
             <button class="icon-btn" type="button" data-action="edit" data-date="${r.date}" title="编辑">
@@ -163,6 +174,18 @@ function renderTable() {
       `
     )
     .join("");
+}
+
+function formatProblemNames(record) {
+  const problems = record.problems || [];
+  if (problems.length === 0) {
+    return "";
+  }
+  const names = problems.map((p) => p.name || p.oj || p.link).filter(Boolean);
+  if (names.length <= 3) {
+    return names.join("、");
+  }
+  return `${names.slice(0, 3).join("、")} 等 ${problems.length} 题`;
 }
 
 function escapeHtml(value) {
@@ -181,6 +204,7 @@ function enterEdit(record) {
   $("countInput").value = record.count;
   $("reviewInput").checked = record.reviewed;
   $("noteInput").value = record.note;
+  renderProblemRows(record.problems || []);
   $("submitBtn").innerHTML = '<i data-lucide="check"></i><span>保存</span>';
   $("cancelBtn").hidden = false;
   $("logForm").scrollIntoView({ behavior: "smooth", block: "center" });
@@ -193,12 +217,60 @@ function resetForm(keepDate = false) {
     $("dateInput").value = localDateString();
   }
   $("dateInput").disabled = false;
-  $("countInput").value = 1;
+  $("countInput").value = 0;
   $("reviewInput").checked = false;
   $("noteInput").value = "";
+  renderProblemRows([]);
   $("submitBtn").innerHTML = '<i data-lucide="plus"></i><span>记录</span>';
   $("cancelBtn").hidden = true;
   refreshIcons();
+}
+
+function problemRowHTML(problem = {}) {
+  const name = escapeHtml(problem.name || "");
+  const oj = escapeHtml(problem.oj || "");
+  const link = escapeHtml(problem.link || "");
+  const checked = problem.reviewed ? "checked" : "";
+  return `
+    <div class="problem-row">
+      <input type="text" class="p-name" value="${name}" placeholder="题目 / 题号">
+      <input type="text" class="p-oj" value="${oj}" placeholder="OJ">
+      <input type="text" class="p-link" value="${link}" placeholder="链接（可选）">
+      <label class="p-review"><input type="checkbox" class="p-reviewed" ${checked}><span>补题</span></label>
+      <button class="icon-btn danger" type="button" data-remove-row title="删除这一题"><i data-lucide="x"></i></button>
+    </div>
+  `;
+}
+
+function renderProblemRows(problems) {
+  const container = $("problemRows");
+  container.innerHTML = "";
+  const list = problems && problems.length > 0 ? problems : [{}];
+  list.forEach((problem) => {
+    container.insertAdjacentHTML("beforeend", problemRowHTML(problem));
+  });
+  updateCountFromRows();
+  refreshIcons();
+}
+
+function collectProblems() {
+  return [...document.querySelectorAll("#problemRows .problem-row")]
+    .map((row) => ({
+      name: row.querySelector(".p-name").value.trim(),
+      oj: row.querySelector(".p-oj").value.trim(),
+      link: row.querySelector(".p-link").value.trim(),
+      reviewed: row.querySelector(".p-reviewed").checked
+    }))
+    .filter((p) => p.name || p.oj || p.link);
+}
+
+function updateCountFromRows() {
+  const named = [...document.querySelectorAll("#problemRows .problem-row")].filter(
+    (row) => row.querySelector(".p-name").value.trim()
+  ).length;
+  if (named > 0) {
+    $("countInput").value = named;
+  }
 }
 
 function refreshIcons() {
@@ -215,11 +287,13 @@ $("logForm").addEventListener("submit", (event) => {
     return;
   }
   const count = Math.max(0, Math.floor(Number($("countInput").value) || 0));
+  const problems = collectProblems();
   const record = {
     date,
-    count,
+    count: problems.length > 0 ? problems.length : count,
     reviewed: $("reviewInput").checked,
-    note: $("noteInput").value.trim()
+    note: $("noteInput").value.trim(),
+    problems
   };
 
   const existingIndex = records.findIndex((r) => r.date === date);
@@ -249,6 +323,23 @@ $("dateInput").addEventListener("change", () => {
 $("cancelBtn").addEventListener("click", () => {
   resetForm();
   renderHeader();
+});
+
+$("addProblemBtn").addEventListener("click", () => {
+  $("problemRows").insertAdjacentHTML("beforeend", problemRowHTML());
+  updateCountFromRows();
+  refreshIcons();
+});
+
+$("problemRows").addEventListener("input", updateCountFromRows);
+$("problemRows").addEventListener("change", updateCountFromRows);
+$("problemRows").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-remove-row]");
+  if (!button) {
+    return;
+  }
+  button.closest(".problem-row").remove();
+  updateCountFromRows();
 });
 
 $("recordBody").addEventListener("click", (event) => {
@@ -302,7 +393,17 @@ $("importInput").addEventListener("change", (event) => {
           date: r.date,
           count: Math.max(0, Math.floor(Number(r.count))),
           reviewed: Boolean(r.reviewed),
-          note: String(r.note || "")
+          note: String(r.note || ""),
+          problems: Array.isArray(r.problems)
+            ? r.problems
+                .filter((p) => p && (p.name || p.oj || p.link))
+                .map((p) => ({
+                  name: String(p.name || "").trim(),
+                  oj: String(p.oj || "").trim(),
+                  link: String(p.link || "").trim(),
+                  reviewed: Boolean(p.reviewed)
+                }))
+            : []
         }));
       saveRecords();
       resetForm();

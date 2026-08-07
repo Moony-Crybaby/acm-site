@@ -267,6 +267,60 @@ input:focus {
   gap: 8px;
 }
 
+.problem-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.problem-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.problem-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.problem-list {
+  display: grid;
+  gap: 8px;
+}
+
+.problem-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) minmax(160px, 1.2fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.p-review {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.p-review input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.problem-row .icon-btn {
+  margin-left: 0;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -416,6 +470,13 @@ td.count-cell {
   white-space: nowrap;
 }
 
+.problem-cell {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 td.actions {
   text-align: right;
   white-space: nowrap;
@@ -467,6 +528,16 @@ td.actions {
   }
 }
 
+@media (max-width: 760px) {
+  .problem-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .p-link {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 560px) {
   .header-inner {
     flex-direction: column;
@@ -496,6 +567,19 @@ td.actions {
 
   .form-actions .btn {
     flex: 1;
+  }
+
+  .problem-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .problem-row {
+    grid-template-columns: 1fr;
+  }
+
+  .p-link {
+    grid-column: auto;
   }
 
   .week-chart {
