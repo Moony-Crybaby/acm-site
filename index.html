@@ -27,9 +27,23 @@
         </label>
       </div>
     </div>
+    <div class="wrap header-nav">
+      <nav class="view-tabs" aria-label="页面切换">
+        <button class="view-tab active" type="button" data-view="log">
+          <i data-lucide="clipboard-list"></i><span>打卡</span>
+        </button>
+        <button class="view-tab" type="button" data-view="templates">
+          <i data-lucide="library-big"></i><span>模板库</span>
+        </button>
+        <button class="view-tab" type="button" data-view="code">
+          <i data-lucide="code-2"></i><span>代码库</span>
+        </button>
+      </nav>
+    </div>
   </header>
 
   <main class="wrap">
+    <section class="view" id="view-log">
     <section class="stats" aria-label="统计">
       <article class="stat">
         <div class="stat-icon icon-teal"><i data-lucide="target"></i></div>
@@ -57,6 +71,41 @@
         <div>
           <div class="stat-value" id="statStreak">0</div>
           <div class="stat-label">连续打卡</div>
+        </div>
+      </article>
+      <article class="stat">
+        <div class="stat-icon icon-teal"><i data-lucide="trending-up"></i></div>
+        <div>
+          <div class="stat-value" id="statWeek7">0</div>
+          <div class="stat-label">近 7 天题数</div>
+        </div>
+      </article>
+      <article class="stat">
+        <div class="stat-icon icon-blue"><i data-lucide="calendar-days"></i></div>
+        <div>
+          <div class="stat-value" id="statMonth30">0</div>
+          <div class="stat-label">近 30 天题数</div>
+        </div>
+      </article>
+      <article class="stat">
+        <div class="stat-icon icon-amber"><i data-lucide="calendar-range"></i></div>
+        <div>
+          <div class="stat-value" id="statThisMonth">0</div>
+          <div class="stat-label">本月题数</div>
+        </div>
+      </article>
+      <article class="stat">
+        <div class="stat-icon icon-red"><i data-lucide="calendar-check"></i></div>
+        <div>
+          <div class="stat-value" id="statMonthStreak">0</div>
+          <div class="stat-label">本月连续打卡</div>
+        </div>
+      </article>
+      <article class="stat">
+        <div class="stat-icon icon-teal"><i data-lucide="trophy"></i></div>
+        <div>
+          <div class="stat-value" id="statYear">0</div>
+          <div class="stat-label">近一年题数</div>
         </div>
       </article>
     </section>
@@ -104,9 +153,16 @@
 
     <section class="panel">
       <div class="panel-head">
-        <h2 class="panel-title">近 7 天</h2>
+        <h2 class="panel-title">最近 30 天</h2>
       </div>
-      <div class="week-chart" id="weekChart" aria-label="近 7 天题数柱状图"></div>
+      <div class="range-chart" id="chart30" aria-label="最近 30 天题数柱状图"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">近一年按月</h2>
+      </div>
+      <div class="range-chart months" id="chartMonths" aria-label="近一年每月题数柱状图"></div>
     </section>
 
     <section class="panel">
@@ -118,15 +174,131 @@
           <thead>
             <tr>
               <th>日期</th>
-              <th>题数</th>
-              <th>补题</th>
               <th>题目</th>
+              <th>OJ</th>
+              <th>补题</th>
               <th>备注</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="recordBody"></tbody>
         </table>
+      </div>
+    </section>
+    </section>
+
+    <section class="view" id="view-templates" hidden>
+      <div class="panel lib-form-panel" id="templateFormPanel" hidden>
+        <div class="panel-head">
+          <h2 class="panel-title" id="templateFormTitle">添加模板</h2>
+          <button class="btn ghost" id="cancelTemplateBtn" type="button">
+            <i data-lucide="x"></i><span>取消</span>
+          </button>
+        </div>
+        <form class="lib-form" id="templateForm">
+          <label class="field">
+            <span class="field-label">标题</span>
+            <input type="text" id="templateTitle" required maxlength="80" placeholder="如：Dijkstra 堆优化">
+          </label>
+          <label class="field">
+            <span class="field-label">分类</span>
+            <input type="text" id="templateCategory" list="categoryList" placeholder="图论 / DP / 数据结构 / 数论">
+          </label>
+          <datalist id="categoryList"></datalist>
+          <label class="field">
+            <span class="field-label">标签</span>
+            <input type="text" id="templateTags" placeholder="多个标签用逗号分隔">
+          </label>
+          <label class="field lib-wide-field">
+            <span class="field-label">说明</span>
+            <input type="text" id="templateNote" maxlength="160" placeholder="适用范围 / 注意事项">
+          </label>
+          <label class="field lib-code-field">
+            <span class="field-label">代码</span>
+            <textarea id="templateCode" rows="14" spellcheck="false" placeholder="粘贴你的算法模板代码"></textarea>
+          </label>
+          <div class="form-actions">
+            <button class="btn primary" type="submit" id="templateSubmit">
+              <i data-lucide="save"></i><span>保存模板</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">模板库 <span class="count-badge" id="templateCount">0</span></h2>
+        </div>
+        <div class="lib-toolbar">
+          <input type="search" id="templateSearch" placeholder="搜索标题 / 分类 / 标签">
+          <button class="btn primary" id="addTemplateBtn" type="button">
+            <i data-lucide="plus"></i><span>添加模板</span>
+          </button>
+        </div>
+        <div class="lib-grid" id="templateGrid"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-code" hidden>
+      <div class="panel lib-form-panel" id="codeFormPanel" hidden>
+        <div class="panel-head">
+          <h2 class="panel-title" id="codeFormTitle">添加代码</h2>
+          <button class="btn ghost" id="cancelCodeBtn" type="button">
+            <i data-lucide="x"></i><span>取消</span>
+          </button>
+        </div>
+        <form class="lib-form" id="codeForm">
+          <label class="field">
+            <span class="field-label">题目</span>
+            <input type="text" id="codeTitle" required maxlength="80" placeholder="如：A. Watermelon">
+          </label>
+          <label class="field">
+            <span class="field-label">OJ</span>
+            <input type="text" id="codeOj" placeholder="Codeforces / 洛谷">
+          </label>
+          <label class="field">
+            <span class="field-label">链接</span>
+            <input type="text" id="codeLink" placeholder="题目链接（可选）">
+          </label>
+          <label class="field">
+            <span class="field-label">分类</span>
+            <input type="text" id="codeCategory" list="categoryList" placeholder="图论 / DP / 数据结构">
+          </label>
+          <label class="field">
+            <span class="field-label">标签</span>
+            <input type="text" id="codeTags" placeholder="多个标签用逗号分隔">
+          </label>
+          <label class="field">
+            <span class="field-label">日期</span>
+            <input type="date" id="codeDate">
+          </label>
+          <label class="field lib-wide-field">
+            <span class="field-label">说明</span>
+            <input type="text" id="codeNote" maxlength="160" placeholder="这题用到的思路">
+          </label>
+          <label class="field lib-code-field">
+            <span class="field-label">代码</span>
+            <textarea id="codeBody" rows="14" spellcheck="false" placeholder="粘贴你的 AC 代码"></textarea>
+          </label>
+          <div class="form-actions">
+            <button class="btn primary" type="submit" id="codeSubmit">
+              <i data-lucide="save"></i><span>保存代码</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">代码库 <span class="count-badge" id="codeCount">0</span></h2>
+        </div>
+        <div class="lib-toolbar">
+          <input type="search" id="codeSearch" placeholder="搜索题目 / OJ / 分类 / 标签">
+          <button class="btn primary" id="addCodeBtn" type="button">
+            <i data-lucide="plus"></i><span>添加代码</span>
+          </button>
+        </div>
+        <div class="lib-grid" id="codeGrid"></div>
       </div>
     </section>
   </main>
