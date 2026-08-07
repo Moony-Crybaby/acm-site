@@ -588,12 +588,14 @@ $("dateInput").addEventListener("change", () => {
   if (!date) {
     return;
   }
+  $("dateFilter").value = date;
   const existing = getRecord(date);
   if (existing) {
     enterEdit(existing);
   } else if (editingDate) {
     resetForm(true);
   }
+  render();
 });
 
 $("cancelBtn").addEventListener("click", () => {

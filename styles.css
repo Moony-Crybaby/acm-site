@@ -216,6 +216,16 @@ main {
   gap: 8px;
 }
 
+.filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .filter-bar input[type="date"] {
   height: 38px;
 }
