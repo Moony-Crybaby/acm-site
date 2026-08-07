@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ACM 刷题与补题打卡板">
+  <title>ACM 打卡板</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <span class="brand-mark"><i data-lucide="code-2"></i></span>
+        <div>
+          <h1>ACM 打卡板</h1>
+          <p class="header-sub" id="todayLine">--</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn ghost" id="exportBtn" type="button" title="导出 JSON 备份">
+          <i data-lucide="download"></i><span>导出</span>
+        </button>
+        <label class="btn ghost" for="importInput" title="导入 JSON 备份">
+          <i data-lucide="upload"></i><span>导入</span>
+          <input id="importInput" type="file" accept=".json,application/json" hidden>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="stats" aria-label="统计">
+      <article class="stat">
+        <div class="stat-icon icon-teal"><i data-lucide="target"></i></div>
+        <div>
+          <div class="stat-value" id="statToday">0</div>
+          <div class="stat-label" id="statTodayLabel">今日题数</div>
+        </div>
+      </article>
+      <article class="stat">
+        <div class="stat-icon icon-blue"><i data-lucide="sigma"></i></div>
+        <div>
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">累计题数</div>
+        </div>
+      </article>
+      <article class="stat">
+        <div class="stat-icon icon-amber"><i data-lucide="rotate-ccw"></i></div>
+        <div>
+          <div class="stat-value" id="statReviewed">0</div>
+          <div class="stat-label">已补题天数</div>
+        </div>
+      </article>
+      <article class="stat">
+        <div class="stat-icon icon-red"><i data-lucide="flame"></i></div>
+        <div>
+          <div class="stat-value" id="statStreak">0</div>
+          <div class="stat-label">连续打卡</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <form class="log-form" id="logForm">
+        <label class="field">
+          <span class="field-label">日期</span>
+          <input type="date" id="dateInput" required>
+        </label>
+        <label class="field">
+          <span class="field-label">题数</span>
+          <input type="number" id="countInput" min="0" max="999" step="1" value="1" required>
+        </label>
+        <div class="field">
+          <span class="field-label">补题</span>
+          <label class="switch">
+            <input type="checkbox" id="reviewInput">
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <label class="field">
+          <span class="field-label">备注</span>
+          <input type="text" id="noteInput" maxlength="120" placeholder="题目 / OJ">
+        </label>
+        <div class="form-actions">
+          <button class="btn ghost" id="cancelBtn" type="button" hidden>
+            <i data-lucide="x"></i><span>取消</span>
+          </button>
+          <button class="btn primary" id="submitBtn" type="submit">
+            <i data-lucide="plus"></i><span>记录</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">近 7 天</h2>
+      </div>
+      <div class="week-chart" id="weekChart" aria-label="近 7 天题数柱状图"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">记录</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>题数</th>
+              <th>补题</th>
+              <th>备注</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="recordBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">数据保存在浏览器本地</footer>
+
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
