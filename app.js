@@ -234,13 +234,17 @@ function formatDateCN(dateStr) {
 
 function renderTable() {
   const body = $("recordBody");
-  if (records.length === 0) {
-    body.innerHTML = `<tr class="empty-row"><td colspan="6">还没有记录</td></tr>`;
+  const dateFilter = $("dateFilter").value;
+  const filteredRecords = dateFilter ? records.filter((r) => r.date === dateFilter) : records;
+  renderDaySummary(dateFilter, filteredRecords);
+  if (filteredRecords.length === 0) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="6">${dateFilter ? "这一天还没有记录" : "还没有记录"}</td></tr>`;
+    $("recordCount").textContent = 0;
     return;
   }
 
   const rows = [];
-  const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date));
+  const sorted = [...filteredRecords].sort((a, b) => b.date.localeCompare(a.date));
   sorted.forEach((r) => {
     const problems = r.problems || [];
     if (problems.length === 0) {
@@ -290,6 +294,29 @@ function renderTable() {
       `;
     })
     .join("");
+  $("recordCount").textContent = rows.length;
+}
+
+function renderDaySummary(dateStr, list) {
+  const summary = $("daySummary");
+  if (!dateStr) {
+    summary.hidden = true;
+    return;
+  }
+  const record = list[0];
+  if (!record) {
+    summary.hidden = true;
+    return;
+  }
+  const problems = record.problems || [];
+  let problemText = "";
+  if (problems.length > 0) {
+    const names = problems.map((p) => p.name || p.oj || p.link).filter(Boolean);
+    const shown = names.slice(0, 3).join("、");
+    problemText = ` · ${shown}${names.length > 3 ? " 等" : ""}`;
+  }
+  summary.innerHTML = `<strong>${escapeHtml(dateStr)}</strong> · 共 ${record.count} 题 · ${record.reviewed ? "已补题" : "未补题"}${escapeHtml(problemText)}`;
+  summary.hidden = false;
 }
 
 function problemNamesText(record) {
@@ -625,6 +652,12 @@ $("recordBody").addEventListener("click", (event) => {
       render();
     }
   }
+});
+
+$("dateFilter").addEventListener("change", render);
+$("clearDateFilter").addEventListener("click", () => {
+  $("dateFilter").value = "";
+  render();
 });
 
 function loadTemplates() {
